@@ -7,6 +7,7 @@
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)  
 
 An implementation of [failpoints][failpoint] for Golang. Fail points are used to add code points where errors may be injected in a user controlled fashion. Fail point is a code snippet that is only executed when the corresponding failpoint is active.
+
 Golang 的 [failpoints][failpoint] 的实现。故障点用于添加可能以用户控制的方式注入错误的代码点。故障点是仅在相应故障点处于活动状态时才执行的代码片段。
 
 [failpoint]: http://www.freebsd.org/cgi/man.cgi?query=fail
@@ -568,10 +569,11 @@ avoid name conflict. There are some recommended naming rules to improve this sit
 3. Traverse AST to find marker function calls
 4. Marker function calls will be rewritten with an IF statement, which calls `failpoint.Eval` to determine whether a
 failpoint is active and executes failpoint code if the failpoint is enabled
-1.定义一组标记函数
-2.解析导入并修剪不导入故障点的源文件
-3.遍历AST查找标记函数调用
-4.marker函数调用会被重写为一个IF语句，调用`failpoint.Eval`判断一个failpoint是否处于活动状态，如果failpoint开启则执行failpoint代码
+
+1. 定义一组标记函数
+2. 解析导入并修剪不导入故障点的源文件
+3. 遍历AST查找标记函数调用
+4. marker函数调用会被重写为一个IF语句，调用`failpoint.Eval`判断一个failpoint是否处于活动状态，如果failpoint开启则执行failpoint代码
 
 ![rewrite-demo](./media/rewrite-demo.png)
 
