@@ -578,5 +578,7 @@ failpoint is active and executes failpoint code if the failpoint is enabled
 ![rewrite-demo](./media/rewrite-demo.png)
 
 ## Acknowledgments
+## 致谢
 
 - Thanks [gofail](https://github.com/etcd-io/gofail) to provide initial implementation.
+- 感谢 [gofail](https://github.com/etcd-io/gofail) 提供初始实现。
