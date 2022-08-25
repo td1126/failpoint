@@ -7,6 +7,7 @@
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)  
 
 An implementation of [failpoints][failpoint] for Golang. Fail points are used to add code points where errors may be injected in a user controlled fashion. Fail point is a code snippet that is only executed when the corresponding failpoint is active.
+Golang 的 [failpoints][failpoint] 的实现。故障点用于添加可能以用户控制的方式注入错误的代码点。故障点是仅在相应故障点处于活动状态时才执行的代码片段。
 
 [failpoint]: http://www.freebsd.org/cgi/man.cgi?query=fail
 
@@ -52,25 +53,39 @@ An implementation of [failpoints][failpoint] for Golang. Fail points are used to
     ```
 
 ## Design principles
+## 设计原则
 
 - Define failpoint in valid Golang code, not comments or anything else
 - Failpoint does not have any extra cost
+- 在有效的 Golang 代码中定义故障点，而不是注释或其他任何内容
+- Failpoint 没有任何额外费用
 
     - Will not take effect on regular logic
     - Will not cause regular code performance regression
     - Failpoint code will not appear in the final binary
+    - 不会对常规逻辑生效
+    - 不会导致常规代码性能降低
+    - 故障点代码不会出现在最终的二进制文件中
 
 - Failpoint routine is writable/readable and should be checked by a compiler
 - Generated code by failpoint definition is easy to read
 - Keep the line numbers same with the injecting codes(easier to debug)
 - Support parallel tests with context.Context
+- 故障点例程是可写/可读的，应该由编译器检查
+- 由故障点定义生成的代码易于阅读
+- 保持与注入代码相同的行号（更易于调试）
+- 支持带有 context.Context 的并行测试
 
 ## Key concepts
+## 关键概念
 
 - Failpoint
+- 故障点
 
     Faillpoint is a code snippet that is only executed when the corresponding failpoint is active.
     The closure will never be executed if `failpoint.Disable("failpoint-name-for-demo")` is executed.
+    故障点是一个代码片段，只有在相应的故障点处于活动状态时才会执行。
+    如果执行了 `failpoint.Disable("failpoint-name-for-demo")`，则永远不会执行闭包。
 
     ```go
     var outerVar = "declare in outer scope"
@@ -80,19 +95,28 @@ An implementation of [failpoints][failpoint] for Golang. Fail points are used to
     ```
 
 - Marker functions
+- 标记功能
 
     - It is just an empty function
+    - 它只是一个空函数
 
         - To hint the rewriter to rewrite with an equality statement
         - To receive some parameters as the rewrite rule
         - It will be inline in the compiling time and emit nothing to binary (zero cost)
         - The variables in external scope can be accessed in closure by capturing, and the converted code is still legal
         because all the captured-variables location in outer scope of IF statement.
+        - 提示重写器用相等语句重写
+        - 接收一些参数作为重写规则
+        - 它将在编译时内联，并且不会向二进制发送任何内容（零成本）
+        - 外部作用域中的变量可以通过捕获在闭包中访问，并且转换后的代码仍然是合法的，因为所有捕获的变量都位于 IF 语句的外部作用域中。
 
     - It is easy to write/read 
     - Introduce a compiler check for failpoints which cannot compile in the regular mode if failpoint code is invalid
+    - 易于写/读
+    - 如果故障点代码无效，则对无法在常规模式下编译的故障点引入编译器检查
 
 - Marker funtion list
+- 标记功能列表
 
     - `func Inject(fpname string, fpblock func(val Value)) {}`
     - `func InjectContext(fpname string, ctx context.Context, fpblock func(val Value)) {}`
@@ -104,6 +128,7 @@ An implementation of [failpoints][failpoint] for Golang. Fail points are used to
     - `func Label(label string) {}`
 
 - Supported failpoint environment variable
+- 支持的故障点环境变量
 
     failpoint can be enabled by export environment variables with the following patten, which is quite similar to [freebsd failpoint SYSCTL VARIABLES](https://www.freebsd.org/cgi/man.cgi?query=fail)
 
