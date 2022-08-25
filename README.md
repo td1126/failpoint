@@ -360,6 +360,7 @@ instead of using failpoint marker functions.
 ### 一些复杂的故障点演示
 
 - Inject a failpoint to the IF INITIAL statement or CONDITIONAL expression
+- 向 IF INITIAL 语句或 CONDITIONAL 表达式注入故障点
 
     ```go
     if a, b := func() {
@@ -385,6 +386,7 @@ instead of using failpoint marker functions.
     ```
 
     The above code block will generate something like this:
+    上面的代码块将生成如下内容：
 
     ```go
     if a, b := func() {
@@ -410,6 +412,7 @@ instead of using failpoint marker functions.
     ```
 
 - Inject a failpoint to the SELECT statement to make it block one CASE if the failpoint is active
+- 向 SELECT 语句注入一个故障点，使其在故障点处于活动状态时阻塞一个 CASE
 
     ```go
     func (s *StoreService) ExecuteStoreTask() {
@@ -432,6 +435,7 @@ instead of using failpoint marker functions.
     ```
 
     The above code block will generate something like this:
+    上面的代码块将生成如下内容：
 
     ```go
     func (s *StoreService) ExecuteStoreTask() {
@@ -454,6 +458,7 @@ instead of using failpoint marker functions.
     ```
 
 - Inject a failpoint to dynamically extend SWITCH CASE arms
+- 注入故障点以动态扩展 SWITCH CASE 臂
 
     ```go
     switch opType := operator.Type(); {
@@ -506,18 +511,27 @@ instead of using failpoint marker functions.
     ```
 
 - More complicated failpoints
+- 更复杂的故障点
 
     - There are more complicated failpoint sites that can be injected to
+    - 可以注入更复杂的故障点站点
         - for the loop INITIAL statement, CONDITIONAL expression and POST statement
         - for the RANGE statement
         - SWITCH INITIAL statement
+        - 用于循环 INITIAL 语句、CONDITIONAL 表达式和 POST 语句
+        - 对于 RANGE 语句
+        - SWITCH INITIAL 声明
         - …
     - Anywhere you can call a function
+    - 任何可以调用函数的地方
 
 ## Failpoint name best practice
+## 故障点名称最佳实践
 
 As you see above, `_curpkg_` will automatically wrap the original failpoint name in `failpoint.Eval` call.
 You can think of `_curpkg_` as a macro that automatically prepends the current package path to the failpoint name. For example,
+正如您在上面看到的，`_curpkg_` 将自动将原始故障点名称包装在 `failpoint.Eval` 调用中。
+您可以将 `_curpkg_` 视为自动将当前包路径添加到故障点名称的宏。例如，
 
 ```go
 package ddl // which parent package is `github.com/pingcap/tidb`
@@ -530,25 +544,34 @@ func demo() {
 
 You do not need to care about `_curpkg_` in your application. It is automatically generated after running `failpoint-ctl enable`
 and is deleted with `failpoint-ctl disable`.
+你不需要关心你的应用程序中的`_curpkg_`。它在运行 `failpoint-ctl enable` 后自动生成，并使用 `failpoint-ctl disable` 删除。
 
 Because all failpoints in a package share the same namespace, we need to be careful to
 avoid name conflict. There are some recommended naming rules to improve this situation.
+因为包中的所有故障点共享相同的命名空间，所以我们需要小心避免名称冲突。有一些推荐的命名规则可以改善这种情况。
 
 - Keep name unique in current subpackage
 - Use a self-explanatory name for the failpoint
-    
+- 在当前子包中保持名称唯一
+- 为故障点使用不言自明的名称
+
     You can enable failpoints by environment variables
     ```shell
     GO_FAILPOINTS="github.com/pingcap/tidb/ddl/renameTableErr=return(100);github.com/pingcap/tidb/planner/core/illegalPushDown=return(true);github.com/pingcap/pd/server/schedulers/balanceLeaderFailed=return(true)"
     ```
     
 ## Implementation details
+## 实现细节
 
 1. Define a group of marker functions
 2. Parse imports and prune a source file which does not import a failpoint
 3. Traverse AST to find marker function calls
 4. Marker function calls will be rewritten with an IF statement, which calls `failpoint.Eval` to determine whether a
 failpoint is active and executes failpoint code if the failpoint is enabled
+1.定义一组标记函数
+2.解析导入并修剪不导入故障点的源文件
+3.遍历AST查找标记函数调用
+4.marker函数调用会被重写为一个IF语句，调用`failpoint.Eval`判断一个failpoint是否处于活动状态，如果failpoint开启则执行failpoint代码
 
 ![rewrite-demo](./media/rewrite-demo.png)
 
