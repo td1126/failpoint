@@ -131,12 +131,14 @@ Golang 的 [failpoints][failpoint] 的实现。故障点用于添加可能以用
 - 支持的故障点环境变量
 
     failpoint can be enabled by export environment variables with the following patten, which is quite similar to [freebsd failpoint SYSCTL VARIABLES](https://www.freebsd.org/cgi/man.cgi?query=fail)
+    failpoint 可以通过导出环境变量启用，模式如下，与 [freebsd failpoint SYSCTL VARIABLES](https://www.freebsd.org/cgi/man.cgi?query=fail) 非常相似
 
     ```regexp
     [<percent>%][<count>*]<type>[(args...)][-><more terms>]
     ```
 
     The <type> argument specifies which action to take; it can be one of:
+    <type> 参数指定要采取的行动；它可以是以下之一：
 
     - off: Take no action (does not trigger failpoint code)
     - return: Trigger failpoint with specified argument
@@ -145,11 +147,20 @@ Golang 的 [failpoints][failpoint] 的实现。故障点用于添加可能以用
     - break: Execute gdb and break into debugger
     - print: Print failpoint path for inject variable
     - pause: Pause will pause until the failpoint is disabled
-
+    - off：不采取任何行动（不触发故障点代码）
+    - return：使用指定参数触发故障点
+    - sleep：休眠指定的毫秒数
+    - panic：恐慌
+    - break：执行 gdb 并进入调试器
+    - print：打印注入变量的故障点路径
+    - pause：暂停将暂停，直到故障点被禁用
+  
 ## How to inject a failpoint to your program
+## 如何向程序注入故障点
 
 - You can call `failpoint.Inject` to inject a failpoint to the call site, where `failpoint-name` is
 used to trigger the failpoint and `failpoint-closure` will be expanded as the body of the IF statement.
+- 您可以调用 `failpoint.Inject` 向调用站点注入故障点，其中 `failpoint-name` 用于触发故障点，而 `failpoint-closure` 将扩展为 IF 语句的主体。
 
     ```go
     failpoint.Inject("failpoint-name", func(val failpoint.Value) {
@@ -158,6 +169,7 @@ used to trigger the failpoint and `failpoint-closure` will be expanded as the bo
     ```
 
     The converted code looks like:
+    转换后的代码如下所示：
 
     ```go
     if val, _err_ := failpoint.Eval(_curpkg_("failpoint-name")); _err_ == nil {
@@ -167,6 +179,7 @@ used to trigger the failpoint and `failpoint-closure` will be expanded as the bo
 
 - `failpoint.Value` is the value that passes by `failpoint.Enable("failpoint-name", "return(5)")`
 which can be ignored.
+- `failpoint.Value` 是通过 `failpoint.Enable("failpoint-name", "return(5)")` 传递的值，可以忽略。
 
     ```go
     failpoint.Inject("failpoint-name", func(_ failpoint.Value) {
@@ -193,6 +206,8 @@ which can be ignored.
 - Also, the failpoint closure can be a function which takes `context.Context`. You can
 do some customized things with `context.Context` like controlling whether a failpoint is
 active in parallel tests or other cases. For example,
+- 此外，故障点闭包可以是一个采用 `context.Context` 的函数。您可以使用 `context.Context` 做一些自定义的事情，
+例如控制故障点在并行测试或其他情况下是否处于活动状态。例如，
 
     ```go
     failpoint.InjectContext(ctx, "failpoint-name", func(val failpoint.Value) {
@@ -209,6 +224,7 @@ active in parallel tests or other cases. For example,
     ```
 
 - You can ignore `context.Context`, and this will generate the same code as above non-context version. For example,
+- 您可以忽略`context.Context`，这将生成与上述非上下文版本相同的代码。例如，
 
     ```go
     failpoint.InjectContext(nil, "failpoint-name", func(val failpoint.Value) {
@@ -225,6 +241,7 @@ active in parallel tests or other cases. For example,
     ```
 
 - You can control a failpoint by failpoint.WithHook
+- 您可以通过 failpoint.WithHook 控制故障点
 
     ```go
     func (s *dmlSuite) TestCRUDParallel() {
@@ -256,6 +273,7 @@ active in parallel tests or other cases. For example,
     ```
 
 - If you use a failpoint in the loop context, maybe you will use other marker functions.
+- 如果您在循环上下文中使用故障点，也许您将使用其他标记函数。
 
     ```go
     failpoint.Label("outer")
@@ -286,6 +304,7 @@ active in parallel tests or other cases. For example,
     ```
 
     The above code block will generate the following code:
+    上述代码块将生成以下代码：
 
     ```go
     outer:
@@ -317,9 +336,11 @@ active in parallel tests or other cases. For example,
 
 - You may doubt why we do not use `label`, `break`, `continue`, and `fallthrough` directly
 instead of using failpoint marker functions. 
+- 你可能会怀疑为什么我们不直接使用 `label`、`break`、`continue` 和 `fallthrough` 而不是使用故障点标记函数。
 
     - Any unused symbol like an ident or a label is not permitted in Golang. It will be invalid if some
     label is only used in the failpoint closure. For example,
+    - Golang 中不允许使用任何未使用的符号，如标识或标签。如果某个标签仅在故障点闭包中使用，它将是无效的。例如，
     
         ```go
         label1: // compiler error: unused label1
@@ -333,8 +354,10 @@ instead of using failpoint marker functions.
 
     - `break` and `continue` can only be used in the loop context, which is not legal in the Golang code 
     if we use them in closure directly.
+    - `break` 和 `continue` 只能在循环上下文中使用，如果我们直接在闭包中使用它们，这在 Golang 代码中是不合法的。
 
 ### Some complicated failpoints demo
+### 一些复杂的故障点演示
 
 - Inject a failpoint to the IF INITIAL statement or CONDITIONAL expression
 
